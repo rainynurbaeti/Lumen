@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use APP\Helpers\ApiFormatter;
+use App\Helpers\ApiFormatter;
 use App\Models\StuffStock;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Http\Request;
@@ -14,9 +14,19 @@ class StuffStockController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function __construct()
+    {
+    $this->middleware('auth:api');
+    }
     public function index()
     {
-        //
+        try{
+            $data = StuffStock::all()->toArray();
+
+            return ApiFormatter::sendResponse(200,'succes',$data);
+        }catch(\Exception $err){
+            return ApiFormatter::sendResponse(400,'bad request',$err->getMessage());
+        }
     }
 
     /**
@@ -86,28 +96,29 @@ class StuffStockController extends Controller
     }
 
 
-    public function addStock(Request $request,$id)
+    public function addStock(Request $request, $id)
     {
-        try{
+        try {
+
             $getStuffStock = StuffStock::find($id);
 
             if (!$getStuffStock) {
-                return ApiFormatter::sendResponse(404,false,'Data Stuff Stock Not Found');
-            }else{
-                $this->validate($request,[
-                    'total_available'=>'required',
-                    'total_defac'=>'required',
+                return ApiFormatter::sendResponse(404, false, 'Data Stuff Stock Not Found');
+            } else {
+                $this->validate($request, [
+                    'total_available' => 'required',
+                    'total_defec' => 'required',
                 ]);
 
-                $addStock = $getStuffStock->update([
-                    'total_available' => $getStuffStock['total_available']+$request->total_available,
-                    'total_devac' => $getStuffStock['total_defac']+$request->total_defac,
+                $addStock =  $getStuffStock->update([
+                    'total_available' => $getStuffStock['total_available'] + $request->total_available,
+                    'total_defec' => $getStuffStock['total_defec'] + $request->total_defec,
                 ]);
 
                 if ($addStock) {
-                    $getStockAdded = StuffStock::where('id',$id)->with('stuff')->first();
+                    $getStockAdded = StuffStock::where('id', $id)->with('stuff')->first();
 
-                    return ApiFormatter::sendResponse(200,true,'Succesfully Add A Stock of Stuff Stock Data',$getStockAdded);
+                    return ApiFormatter::sendResponse(200, true, 'Successfully Add A Stock Of Stuff Stock Data', $getStockAdded);
                 }
             }
         } catch (\Exception $e) {
@@ -115,35 +126,40 @@ class StuffStockController extends Controller
         }
     }
 
-    public function subStock(Request $request,$id){
+    public function subStock(Request $request, $id)
+    {
+        try {
+            $getStuffStock = StuffStock::find($id);
 
-    try{
-        $getStuffStock = StuffStock::find($id);
-
-        if (!$getStuffStock){
-            return ApiFormatter::sendResponse(404,false,'Data Stuff Stock Not found');
-        }else{
-            $this->validate($request,[
-                'total_available'=>'required',
-                'total_defac'=>'required',
-            ]);
-
-            $isStockAvailable = $getStuffStock['total_available']-$request->total_available;
-            $isStockAvailable = $getStuffStock['total_defac']-$request->total_defac;
-
-            if ($isStockAvailable < 0 || $isStockDefac < 0){
-                return ApiFormatter::sendResponse(400,true,'A Substraction Stock Cant Less Than A Stock  Stored');
-            }else{
-                $subStock = $getStuffStock->update([
-                    'total_available'=> $isStockAvailable,
-                    'total_defac'=> $isStockAvailable,
+            if (!$getStuffStock) {
+                return ApiFormatter::sendResponse(404, false, 'Data Stuff Stock Not Found');
+            } else {
+                $this->validate($request, [
+                    'total_available' => 'required',
+                    'total_defec' => 'required',
                 ]);
 
-                if ($subStock){
-                    $getStockSub = StuffStock::where('id' $id)->with('stuff')->first();
+                $isStockAvailable = $getStuffStock['total_available'] - $request->total_available;
+                $isStockDefac = $getStuffStock['total_defec'] - $request->total_defec;
+
+                if ($isStockAvailable < 0 || $isStockDefac < 0) {
+                    return ApiFormatter::sendResponse(400, false, 'A Substraction Stock Cant Less Than A Stock Stored');
+                } else {
+                    $subStock = $getStuffStock->update([
+                        'total_available' => $isStockAvailable,
+                        'total_defec' => $isStockDefac,
+                    ]);
+
+                    if ($subStock) {
+                        $getStockSub = StuffStock::where('id', $id)->with('stuff')->first();
+
+                        return ApiFormatter::sendResponse(200, true, 'Successfully Sub A Stock Of Stuff Stock Data', $getStockSub);
+                    }
                 }
             }
+        } catch (\Exception $e) {
+            return ApiFormatter::sendResponse(400, false, $e->getMessage());
+        }
     }
 }
-}
-}
+

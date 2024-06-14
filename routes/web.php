@@ -17,19 +17,23 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+$router->group(['middleware'=>'cors'],function($router){
+
+
+
 $router->get('/stuffs','StuffController@index');
-$router->post('/login','UserController@login');
-$router->get('/logout','UserController@logout');
+// $router->post('/login','UserController@login');
+// $router->get('/logout','UserController@logout');
 
 
 $router->group(['prefix' => 'Inbound-stuff/','middleware' => 'auth'], function() use ($router) {
     $router->get ('/data','InboundStuffController@index');
     $router->post('store','InboundStuffController@store');
-    $router->get('/trash','StuffController@trash');
-    $router->get('{id}','StuffController@show');
-    $router->patch('/{id}','StuffController@update');
-    $router->delete('/{id}','StuffController@destroy');
-    $router->get('/restore/{id}','StuffController@restore');
+    $router->get('/trash','InboundStuffController@trash');
+    $router->get('{id}','InboundStuffController@show');
+    $router->patch('/update/{id}','InboundStuffController@update');
+    $router->delete('/{id}','InboundStuffController@destroy');
+    $router->get('/restore/{id}','InboundStuffController@restore');
     $router->delete('/{id}','InboundStuffController@destroy');
     $router->delete('/permanent/{id}','InboundStuffController@deletePermanent');
 
@@ -52,9 +56,48 @@ $router->group(['prefix' => 'user'], function() use ($router) {
 
 });
 
-$router->group(['prefix' => 'Stuff-Stock/','middleware' => 'auth'], function() use ($router) {
-    $router->post('add-stock/{id}','StuffStockController@addStock');
+$router->group(['prefix' => 'Stuff-Stock/'], function() use ($router) {
+    $router->get ('/data','StuffStockController@index');
+    $router->post('add-stock/{id}', 'StuffStockController@addStock');
+    $router->post('sub-stock/{id}', 'StuffStockController@subStock');
+
+
+});
+
+$router->group(['prefix' => 'lendings'], function() use ($router) {
+    $router->get ('/data','lendingController@index');
+    $router->post('/store','lendingController@store');
+    $router->get('/restore/{id}','lendingController@restore');
+    $router->get('/show/{id}','lendingController@show');
+    $router->patch('/update/{id}','lendingController@update');
+    $router->delete('/{id}','lendingController@destroy');
+
+
+
+});
+$router->group(['prefix' => 'restoration'], function() use ($router) {
+    $router->get ('/data','restorationController@index');
+    $router->post('/store/{lending_id}','restorationController@store');
+    $router->post('/delete/{lending_id}','restorationController@store');
+    $router->patch('/update/{id}','restorationController@update');
+
+});
+$router->post('/login','AuthController@login');
+$router->get('/logout','AuthController@logout');
+$router->get('/profile','AuthController@me');
+
+
+$router->group(['prefix' => 'stuff/'], function() use ($router) {
+    $router->get ('/data','stuffController@index');
+    $router->post('/store','stuffController@store');
+    $router->get('/trash','stuffController@trash');
+    $router->get('{id}','stuffController@show');
+    $router->patch('/update/{id}','stuffController@update');
+    $router->delete('/delete/{id}','stuffController@destroy');
+    $router->get('/restore/{id}','stuffController@restore');
+    $router->delete('/permanent/{id}','stuffController@deletePermanen');
+
 });
 
 
-
+});

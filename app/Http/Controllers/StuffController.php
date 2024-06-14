@@ -13,10 +13,14 @@ class StuffController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function __construct()
+    {
+    $this->middleware('auth:api');
+    }
     public function index()
     {
         try{
-            $data = Stuff::all()->toArray();
+            $data = Stuff::with('StuffStock','inboundStuffs','lendings')->get()->toArray();
 
             return ApiFormatter::sendResponse(200,'succes',$data);
         }catch(\Exception $err){
@@ -71,7 +75,7 @@ class StuffController extends Controller
     public function show($id)
     {
         try{
-            $data = Stuff::where('id', $id)->first();
+            $data = Stuff::where('id', $id)->with('stuffStock','inboundStuff','lendings')->first();
 
             if (is_null($data)) {
                 return ApiFormatter::sendResponse(400,'bad request','Data not found!');
@@ -132,14 +136,15 @@ class StuffController extends Controller
      */
      public function destroy($id)
     {
-        try{
-            $checkProses = Stuff::where('id',$id)->delete();
+        try {
+            $checkProses = Stuff::where('id', $id)->delete();
 
-            return ApiFormatter::sendResponse(200,'success','data berhasil di hapus');
-        }catch(\Exception  $err) {
-            return ApiFormatter::sendResponse(400,'bad request',$err->getMessage());
+            return ApiFormatter::sendResponse(200, 'success', 'Data stuff berhasil dihapus!');
+        } catch (\Exception $err) {
+            return ApiFormatter::sendResponse(400, 'bad request', $err->getMessage());
         }
     }
+    
 
      public function trash()
     {
@@ -150,6 +155,7 @@ class StuffController extends Controller
         }catch(\Exception  $err) {
             return ApiFormatter::sendResponse(400,'bad request',$err->getMessage());
         }
+
     }
 
     public function restore($id)

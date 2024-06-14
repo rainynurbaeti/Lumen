@@ -18,6 +18,10 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function __construct()
+    {
+    $this->middleware('auth:api');
+    }
     public function index()
     {
 
@@ -108,8 +112,45 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+
+            $getUser = User::find($id);
+
+            if (!$getUser) {
+                return ApiFormatter::sendResponse(404, false, 'Data User Not Found');
+            } else {
+                $this->validate($request, [
+                    'username' => 'required',
+                    'email' => 'required',
+                    'password' => 'required',
+                    'role' => 'required'
+                ]);
+
+                if($request->password){
+                $updateUser = $getUser->update([
+                    'username' => $request->username,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'role' => $request->role,
+                ]);
+            }else{
+                $updateUser = $getUser->update([
+                    'username' => $request->username,
+                    'email' => $request->email,
+                    'role' => $request->role,
+                ]);
+            }
+                if ($updateUser) {
+                    return ApiFormatter::sendResponse(200, true, 'Successfully Update A User Data', $getUser);
+                }
+            }
+        } catch (\Exception $e) {
+            return ApiFormatter::sendResponse(400, false, $e->getMessage());
+        }
     }
+
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -119,8 +160,81 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+
+            $getUser = User::find($id);
+
+            if (!$getUser) {
+                return ApiFormatter::sendResponse(404, false, 'Data User Not Found');
+            } else {
+                $deleteUser = $getUser->delete();
+
+                if ($deleteUser) {
+                    return ApiFormatter::sendResponse(200, true, 'Successfully Delete A User Data');
+                }
+            }
+        } catch (\Exception $e) {
+            return ApiFormatter::sendResponse(400, false, $e->getMessage());
+        }
     }
+
+    public function recycleBin()
+    {
+        try {
+
+            $userDeleted = User::onlyTrashed()->get();
+
+            if (!$userDeleted) {
+                return ApiFormatter::sendResponse(404, false, 'Deletd Data User Doesnt Exists');
+            } else {
+                return ApiFormatter::sendResponse(200, true, 'Successfully Get Delete All User Data', $userDeleted);
+            }
+        } catch (\Exception $e) {
+            return ApiFormatter::sendResponse(400, false, $e->getMessage());
+        }
+    }
+    public function restore($id)
+    {
+        try {
+            $getUser = User::onlyTrashed()->where('id', $id);
+
+            if (!$getUser) {
+                return ApiFormatter::sendResponse(404, false, 'Data User Not Found');
+            } else {
+                $restoreUser = User::onlyTrashed()->where('id', $id)->restore();
+                // where => mencari berdasarkan kolom spesifik yang ingin dicari
+                // find => mencari berdasarkan kolom primary key
+                if ($restoreUser) {
+                    $getRestore = User::find($id);
+
+                    return ApiFormatter::sendResponse(200, true, 'Successfully Restore A Deleted User Data', $getRestore);
+                }
+            }
+        } catch (\Exception $e) {
+            return ApiFormatter::sendResponse(400, false, $e->getMessage());
+        }
+    }
+
+    public function forceDestroy($id)
+    {
+        try {
+
+            $getUser = User::onlyTrashed()->where('id', $id);
+
+            if (!$getUser) {
+                return ApiFormatter::sendResponse(404, false, 'Data User for Permanent Delete Doesnt Exists');
+            } else {
+                $forceUser = $getUser->forceDelete();
+
+                if ($forceUser) {
+                    return ApiFormatter::sendResponse(200, true, 'Successfully Permanent Delete A User Data');
+                }
+            }
+        } catch (\Exception $e) {
+            return ApiFormatter::sendResponse(400, false, $e->getMessage());
+}
+}
+
 
     public function login(Request $request){
 
@@ -181,7 +295,6 @@ class UserController extends Controller
           return ApiFormatter::sendResponse(400, false, $e->getMessage());
       }
   }
-
 }
 
 

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Http\Client\Request;
 
 class StuffStock extends Model
 {
@@ -15,4 +15,13 @@ class StuffStock extends Model
     {
         return $this->belongsTo(Stuff::class);
     }
+    public function addStock(Request $request,$id)
+    {
+        return $this->belongsTo(Stuff::class);
+    }
+    public function subStock(Request $request,$id)
+    {
+        return $this->belongsTo(Stuff::class);
+    }
+
 }
